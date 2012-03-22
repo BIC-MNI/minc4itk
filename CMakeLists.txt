@@ -6,35 +6,18 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 FIND_PACKAGE( MINC2 REQUIRED )
 
-if(not itk-module)
-  FIND_PACKAGE( ITK REQUIRED )
-ENDIF(not itk-module)
-
-
-SET( MINC4ITK_HEADERS
-    include/itkMincImageIOFactory.h
-    include/minc_general_transform.h
-    include/minc_helpers.h
-    include/itkMincImageIO.h
-    )
-
-SET( MINC4ITK_SRC 
-    src/minc_helpers.cxx
-    src/itkMincImageIO.cxx
-    src/itkMincImageIOFactory.cxx
-  )
-
 INCLUDE( ${MINC2_USE_FILE} )
 
-IF(itk-module) # module for ITKv4
 
-  TARGET_LINK_LIBRARIES(ITKIOMINC ${ITKIOTransformBase_LIBRARIES} ${EZMINC_LIBRARIES})
-  ADD_LIBRARY( ITKIOMINC ${MINC4ITK_HEADERS} ${MINC4ITK_SRC})
+SET(MINC4ITK_HEADERS 
+  include/itkMincImageIOFactory.h
+  include/itkMincImageIO.h
+  include/minc_general_transform.h
+  include/minc_helpers.h
+)
 
-  SET(ITKIOMINC_LIBRARIES ITKIOMINC ${EZMINC_LIBRARIES})
-  itk_module_target(ITKIOMINC)
-  
-ELSE(itk-module)
+IF(NOT itk-module)
+  #FIND_PACKAGE( ITK REQUIRED )
   
   INCLUDE(${ITK_USE_FILE})
 
@@ -58,9 +41,7 @@ ELSE(itk-module)
       itkvnl
       ${EZMINC_LIBRARIES}
       )
-
-
-  INSTALL(TARGETS ITKIOMINC ${LIBRARY_INSTALL} DESTINATION lib)
+  
   INSTALL(FILES  ${MINC4ITK_HEADERS} DESTINATION include)
 
   IF(MINC4ITK_BUILD_EXAMPLES)
@@ -71,4 +52,4 @@ ELSE(itk-module)
     add_subdirectory(tools)
   ENDIF(MINC4ITK_BUILD_TOOLS)
 
-ENDIF(itk-module)
+ENDIF(NOT itk-module)
