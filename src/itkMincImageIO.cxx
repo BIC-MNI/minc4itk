@@ -121,16 +121,15 @@ namespace itk
     {
       _rdr=new minc_1_reader;
       _rdr->open(m_FileName.c_str(),true); //read in positive direction, always
-      SetNumberOfDimensions((_rdr->ndim(1)>0?1:0)+(_rdr->ndim(2)>0?1:0)+(_rdr->ndim(3)>0?1:0));
+      
+      SetNumberOfDimensions((_rdr->ndim(1)>0?1:0)+(_rdr->ndim(2)>0?1:0)+(_rdr->ndim(3)>0?1:0)+(_rdr->ndim(4)>0?1:0));
       
       //SetMetaDataDictionary(thisDic);
       // set number of dimensions for ITK
       int image_max_length=_rdr->var_length(MIimagemax);
       int image_min_length=_rdr->var_length(MIimagemin);
       bool slice_normalized=image_max_length>1;
-      /*
-      std::cout<<"Image max length="<<image_max_length<<std::endl;
-      std::cout<<"Image min length="<<image_min_length<<std::endl;*/
+
       
       switch(_rdr->datatype())
       {
@@ -168,20 +167,22 @@ namespace itk
           throw ExceptionObject(__FILE__,__LINE__,"Unsupported data type");
       }
       
-      if(_rdr->ndim(0)==0 && _rdr->ndim(4)==0) //vector dimension
-      {
-        m_PixelType=SCALAR;
-        //SetNumberOfComponents(1);
-      } else {
+      if(_rdr->ndim(0)>0 && _rdr->ndim(4)==0) {
         m_PixelType=VECTOR;
-        if(_rdr->ndim(0)>0 && _rdr->ndim(4)>0)
+        SetNumberOfComponents(_rdr->ndim(0));
+      } else if(_rdr->ndim(0)==0 && _rdr->ndim(4)>0) {
+        m_PixelType=VECTOR;
+        SetNumberOfComponents(_rdr->ndim(4));
+      } else if(_rdr->ndim(0)>0 && _rdr->ndim(4)>0) {
           throw ExceptionObject(__FILE__,__LINE__,"Combining time and vector dimension in one file is not supported!");
-        SetNumberOfComponents(_rdr->ndim(0)+_rdr->ndim(4));
-      }
+      } else
+        m_PixelType=SCALAR;
+
       
       for(int i=1,c=0; i < 4; i++)
       {
         if(_rdr->ndim(i)<=0) continue;
+        
         SetDimensions(c,_rdr->ndim(i));
         SetSpacing(c,_rdr->nspacing(i));
         SetOrigin(c,_rdr->nstart(i));
@@ -191,6 +192,7 @@ namespace itk
       if(GetNumberOfDimensions()==3)
       {
         itk::Matrix< double, 3,3 > dir_cos;
+        
         for(int i=1; i < 4; i++)
         {
           std::vector<double> dc(3);
@@ -213,11 +215,14 @@ namespace itk
         
         itk::Vector< double,3> origin;
         itk::Vector< double,3> o_origin;
+        
         for(int j=0;j<3;j++)
           o_origin[j]=GetOrigin(j);
         origin=dir_cos*o_origin;
+        
         for(int j=0;j<3;j++)
           SetOrigin(j,origin[j]);
+        
       } else { //we are not rotating the origin according to direction cosines in this case 
         for(int i=1,c=0; i < 5; i++)
         {
@@ -289,6 +294,7 @@ namespace itk
            var=="time" ||
            var=="vector_dimension"  )
           continue;
+        
         int var_id=_rdr->var_id(var.c_str());
         for(int j=0;j<_rdr->att_number(var_id);j++)
         {
@@ -477,18 +483,18 @@ namespace itk
       
       if(GetNumberOfComponents()>1)
       {
-	if(GetNumberOfComponents()<=3 ) 
-	{
-	  have_vectors=true;
-	  have_time=false;
-	} else if(GetNumberOfComponents()>3) {
-	  have_vectors=false;
-	  have_time=true;
-	}
-	dim_no++;
+        if(GetNumberOfComponents()<=3 ) 
+        {
+          have_vectors=true;
+          have_time=false;
+        } else if(GetNumberOfComponents()>3) {
+          have_vectors=false;
+          have_time=true;
+        }
+        dim_no++;
       } else if(GetNumberOfDimensions()>3) {
-	have_vectors=false;
-	have_time=true;
+        have_vectors=false;
+        have_time=true;
       }
       
       if(itk::ExposeMetaData(thisDic,"dimorder",dimorder))
@@ -511,17 +517,17 @@ namespace itk
           }
         }
       } else {
+        
         if(have_vectors)
-        {
           dimmap[0]=0;
-        } 
+        
         for(int i=0;i<dim_no-(have_vectors?1:0);i++)
-	  dimmap[1+i]=(have_vectors?1:0)+i;
+          dimmap[1+i]=(have_vectors?1:0)+i;
       }
       
       info.resize(dim_no);
       
-      #ifdef _DEBUG
+#ifdef _DEBUG
       std::cout<<"Number of components:"<<GetNumberOfComponents()<<std::endl;
       std::cout<<"Number of dimensions:"<<GetNumberOfDimensions()<<std::endl;
       std::cout<<"info.size()="<<info.size()<<std::endl;
@@ -531,7 +537,7 @@ namespace itk
         std::cout<<dimmap[i]<<",";
       }
       std::cout<<std::endl;
-      #endif  //_DEBUG
+#endif  //_DEBUG
       
       for(int i=0;i<GetNumberOfDimensions();i++)
       {
@@ -544,7 +550,9 @@ namespace itk
         info[_i].length=GetDimensions(i);
         info[_i].step=GetSpacing(i);
         info[_i].start=GetOrigin(i);
-        info[_i].have_dir_cos=true;
+        
+        info[_i].have_dir_cos=i<3;
+        
         for(int j=0;j<3;j++)
           info[_i].dir_cos[j]=GetDirection(i)[j];
         
@@ -562,7 +570,7 @@ namespace itk
         }
       }
       
-      if(GetNumberOfDimensions()==3) //we are only rotating 3D volumes
+      if(GetNumberOfDimensions()==3) //we are only rotating 3D part
       {
         vnl_vector< double> start(3);
         vnl_vector< double> vorigin(3);
@@ -573,7 +581,9 @@ namespace itk
           for(int j=0;j<3;j++)
             _dir_cos[j][i]=GetDirection(i)[j];
         }
+        
         start=_dir_cos.GetInverse()*vorigin; //this is not optimal
+        
         for(int i=0;i<3;i++)
         {
           int _i=dimmap[i+1];
@@ -606,25 +616,25 @@ namespace itk
         info[_i].start=0;
         info[_i].dim=dim_info::DIM_VEC;
         info[_i].have_dir_cos=false;
-      } else if(have_time){
+      } else if(have_time) {
+        
         int _i=dimmap[4];
         info[_i].length=(GetNumberOfComponents()==1)?GetDimensions(3):GetNumberOfComponents();
         double tstep=1;
         double tstart=0;
-	
-	if( itk::ExposeMetaData(thisDic,"tstep",tstep) &&
-	    itk::ExposeMetaData(thisDic,"tstart",tstart) )
-	{
-	  info[_i].step=tstep;
-	  info[_i].start=tstart;
-	} else if( GetNumberOfComponents()==1 ) {
-	  info[_i].step=GetSpacing(3);
-	  info[_i].start=GetOrigin(3);
-	} else {
-	  info[_i].step=1.0; //TODO: show somehow differently that we don't have info?
-	  info[_i].start=0;
-	}
-	
+
+        if( GetNumberOfComponents()==1 ) {
+          info[_i].step=GetSpacing(3);
+          info[_i].start=GetOrigin(3);
+        } else if( itk::ExposeMetaData(thisDic,"tstep",tstep) &&
+                  itk::ExposeMetaData(thisDic,"tstart",tstart) )
+        {
+          info[_i].step=tstep;
+          info[_i].start=tstart;
+        } else  {
+          info[_i].step=1.0; //TODO: show somehow differently that we don't have info?
+          info[_i].start=0;
+        }
         info[_i].dim=dim_info::DIM_TIME;
         info[_i].have_dir_cos=false; //TODO: what to do here?
       }

@@ -22,7 +22,7 @@
 
 #include "itkMincImageIOFactory.h"
 #include "itkMincImageIO.h"
-#include <minc_io_fixed_vector.h>
+//#include <minc_io_fixed_vector.h>
 
 namespace minc
 {

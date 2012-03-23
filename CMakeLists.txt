@@ -3,11 +3,9 @@
 # Vladimir S. FONOV - vladimir.fonov@gmail.com
 project(ITKIOMINC)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-
 FIND_PACKAGE( MINC2 REQUIRED )
 
 INCLUDE( ${MINC2_USE_FILE} )
-
 
 SET(MINC4ITK_HEADERS 
   include/itkMincImageIOFactory.h
@@ -16,9 +14,11 @@ SET(MINC4ITK_HEADERS
   include/minc_helpers.h
 )
 
-IF(NOT itk-module)
+SET(ITKIOMINC_LIBRARIES ITKIOMINC ${EZMINC_LIBRARIES})
+
+
+IF(NOT itk-module) #building outside of ITKv4 system
   #FIND_PACKAGE( ITK REQUIRED )
-  
   INCLUDE(${ITK_USE_FILE})
 
   IF(NOT ITK_FOUND)
@@ -28,6 +28,12 @@ IF(NOT itk-module)
   IF(BUILD_SHARED_LIBS AND NOT ITK_BUILD_SHARED)
     message(WARNING "Building Shared library but ITK is linked statically!")
   ENDIF(BUILD_SHARED_LIBS AND NOT ITK_BUILD_SHARED)
+ENDIF(NOT itk-module) #building outside of ITKv4 system
+
+add_subdirectory(src)
+
+  
+IF(NOT itk-module) #building outside of ITKv4 system
 
   OPTION(MINC4ITK_BUILD_EXAMPLES   "Build minc4itk examples"    ON)
   OPTION(MINC4ITK_BUILD_TOOLS      "Build minc4itk-bases tools" ON)
