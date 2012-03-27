@@ -27,12 +27,11 @@ namespace itk
 {
 
  /** \class MincImageIO
-  *
+  * \ingroup  ITKIOMINC
   * \author Vladimir S. Fonov
   * \brief Class that defines how to read Minc file format.
   * MINC IMAGE FILE FORMAT 
   *
-  * \ingroup IOFilters
   */
   class ITK_EXPORT MincImageIO: public ImageIOBase
   {

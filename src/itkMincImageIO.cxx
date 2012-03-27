@@ -25,7 +25,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
-
+ 
 using namespace minc;
 
 namespace itk

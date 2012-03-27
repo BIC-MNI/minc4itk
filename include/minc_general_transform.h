@@ -34,9 +34,9 @@
 namespace minc
 {
   /** \class XfmTransform
+   * \ingroup  ITKIOMINC
    * \brief ITK wrapper around Minc general transform functions.
    *
-   * \ingroup Transforms
    *
    */
   template < class TScalarType=double, unsigned int NInputDimensions=3,unsigned int NOutputDimensions=3> 

@@ -26,8 +26,9 @@
 namespace itk
 {
 /** \class MincImageIOFactory
-   * \brief Create instances of MincImageIO objects using an object factory.
-   */
+  * \ingroup  ITKIOMINC
+  * \brief Create instances of MincImageIO objects using an object factory.
+  */
 class ITK_EXPORT MincImageIOFactory : public ObjectFactoryBase
 {
 public:
