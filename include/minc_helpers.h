@@ -22,7 +22,7 @@
 
 #include "itkMincImageIOFactory.h"
 #include "itkMincImageIO.h"
-//#include <minc_io_fixed_vector.h>
+#include <minc_io_fixed_vector.h>
 
 /** 
   * \ingroup  ITKIOMINC
@@ -149,7 +149,7 @@ namespace minc
   //! check if volumes have the same dimensions, spacing and origin
   template<class T,class S> bool check_same(typename T::Pointer image,typename S::Pointer sample)
   {
-		return
+    return
       (image->GetLargestPossibleRegion() == sample->GetLargestPossibleRegion()) &&
       (image->GetSpacing() == sample->GetSpacing()) &&
       (image->GetOrigin() == sample->GetOrigin()) &&
@@ -166,19 +166,19 @@ namespace minc
       const itk::Array<unsigned int> &dims, 
       const itk::Array<double>& spacing, 
       const itk::Array<double>& origin)
-	{
-		image3d_complex::SizeType  imageSize3D = {{ dims[0], dims[1], dims[2]}};
-		image3d_complex::IndexType startIndex3D = { {0, 0, 0}};
-		image3d_complex::RegionType region;
-		region.SetSize  (imageSize3D);
-		region.SetIndex (startIndex3D);
-		image->SetLargestPossibleRegion (region);
-		image->SetBufferedRegion (region);
-		image->SetRequestedRegion (region);
-		image->SetSpacing( spacing );
-		image->SetOrigin( origin );
-		image->Allocate ();
-	}
+  {
+    image3d_complex::SizeType  imageSize3D = {{ dims[0], dims[1], dims[2]}};
+    image3d_complex::IndexType startIndex3D = { {0, 0, 0}};
+    image3d_complex::RegionType region;
+    region.SetSize  (imageSize3D);
+    region.SetIndex (startIndex3D);
+    image->SetLargestPossibleRegion (region);
+    image->SetBufferedRegion (region);
+    image->SetRequestedRegion (region);
+    image->SetSpacing( spacing );
+    image->SetOrigin( origin );
+    image->Allocate ();
+  }
   
   //! allocate volume
   //! \param[out] image - volume to allocate
@@ -189,42 +189,42 @@ namespace minc
       const itk::Vector<unsigned int,3> &dims, 
       const itk::Vector<double,3>& spacing, 
       const itk::Vector<double,3>& origin)
-	{
-		image3d_complex::SizeType  imageSize3D = {{ dims[0], dims[1], dims[2]}};
-		image3d_complex::IndexType startIndex3D = { {0, 0, 0}};
-		image3d_complex::RegionType region;
-		region.SetSize  (imageSize3D);
-		region.SetIndex (startIndex3D);
-		image->SetLargestPossibleRegion (region);
-		image->SetBufferedRegion (region);
-		image->SetRequestedRegion (region);
-		image->SetSpacing( spacing );
-		image->SetOrigin( origin.GetDataPointer () );
-		image->Allocate ();
-	}
+  {
+    image3d_complex::SizeType  imageSize3D = {{ dims[0], dims[1], dims[2]}};
+    image3d_complex::IndexType startIndex3D = { {0, 0, 0}};
+    image3d_complex::RegionType region;
+    region.SetSize  (imageSize3D);
+    region.SetIndex (startIndex3D);
+    image->SetLargestPossibleRegion (region);
+    image->SetBufferedRegion (region);
+    image->SetRequestedRegion (region);
+    image->SetSpacing( spacing );
+    image->SetOrigin( origin.GetDataPointer () );
+    image->Allocate ();
+  }
   
   //! allocate volume
   //! \param[out] image - volume to allocate
   //! \param dims - dimensions (voxels)
   //! \param spacing - volume spacing (mm)
   //! \param origin  - volume origin (mm)
-//   template<class T> void allocate_image3d(typename T::Pointer &image, 
-//       const fixed_vec<3, unsigned int>&dims, 
-//       const fixed_vec<3, double>& spacing=fixed_vec<3, double>(1.0) , 
-//       const fixed_vec<3, double>& origin=fixed_vec<3, double>(0.0))
-// 	{
-// 		image3d_complex::SizeType  imageSize3D = {{ dims[0], dims[1], dims[2]}};
-// 		image3d_complex::IndexType startIndex3D = { {0, 0, 0}};
-// 		image3d_complex::RegionType region;
-// 		region.SetSize  (imageSize3D);
-// 		region.SetIndex (startIndex3D);
-// 		image->SetLargestPossibleRegion (region);
-// 		image->SetBufferedRegion (region);
-// 		image->SetRequestedRegion (region);
-// 		image->SetSpacing( spacing.c_buf() );
-// 		image->SetOrigin( origin.c_buf() );
-// 		image->Allocate ();
-// 	}
+    template<class T> void allocate_image3d(typename T::Pointer &image, 
+        const fixed_vec<3, unsigned int>&dims, 
+        const fixed_vec<3, double>& spacing=fixed_vec<3, double>(1.0) , 
+        const fixed_vec<3, double>& origin=fixed_vec<3, double>(0.0))
+  {
+    image3d_complex::SizeType  imageSize3D = {{ dims[0], dims[1], dims[2]}};
+    image3d_complex::IndexType startIndex3D = { {0, 0, 0}};
+    image3d_complex::RegionType region;
+    region.SetSize  (imageSize3D);
+    region.SetIndex (startIndex3D);
+    image->SetLargestPossibleRegion (region);
+    image->SetBufferedRegion (region);
+    image->SetRequestedRegion (region);
+    image->SetSpacing( spacing.c_buf() );
+    image->SetOrigin( origin.c_buf() );
+    image->Allocate ();
+  }
 
   
   inline image3d::SizeType operator/= (image3d::SizeType & s, int d)
