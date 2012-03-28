@@ -24,6 +24,7 @@
 #include "itkIOTestHelper.h"
 #include "itkMetaDataObject.h"
 #include "itkObjectFactoryBase.h"
+#include "itkMincHelpers.h"
 
 static void RandomPix(vnl_random &randgen,itk::RGBPixel<unsigned char> &pix)
 {

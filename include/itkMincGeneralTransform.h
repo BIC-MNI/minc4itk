@@ -15,18 +15,17 @@
 #ifndef __MINC_GENERAL_TRANSFORM_H__
 #define __MINC_GENERAL_TRANSFORM_H__
 
-#include <itkObject.h>
-#include <itkPoint.h>
-#include <itkVector.h>
-#include <itkCovariantVector.h>
-#include <vnl/vnl_matrix_fixed.h>
-#include <vnl/vnl_vector_fixed.h>
-#include <vnl/vnl_det.h>
-#include <vnl/vnl_vector_fixed_ref.h>
-#include <vnl/vnl_vector.h>
-
-#include <itkTransform.h>
-#include <itkObjectFactory.h>
+#include "itkObject.h"
+#include "itkPoint.h"
+#include "itkVector.h"
+#include "itkCovariantVector.h"
+#include "vnl/vnl_matrix_fixed.h"
+#include "vnl/vnl_vector_fixed.h"
+#include "vnl/vnl_det.h"
+#include "vnl/vnl_vector_fixed_ref.h"
+#include "vnl/vnl_vector.h"
+#include "itkTransform.h"
+#include "itkObjectFactory.h"
 
 //minc header
 #include <volume_io.h>
@@ -98,9 +97,9 @@ namespace minc
       if(_invert && !_initialized_invert)  return point;
       OutputPointType pnt;
       if(NInputDimensions==3 && NOutputDimensions==3)
-	general_transform_point((_invert ? &_xfm_inv : &_xfm), point[0], point[1], point[2],&pnt[0], &pnt[1], &pnt[2]);
+        general_transform_point((_invert ? &_xfm_inv : &_xfm), point[0], point[1], point[2],&pnt[0], &pnt[1], &pnt[2]);
       else
-	itkExceptionMacro(<< "Sorry, only 3D to 3d minc xfm transform is currently implemented");
+        itkExceptionMacro(<< "Sorry, only 3D to 3d minc xfm transform is currently implemented");
       return pnt;
     }
     //! use finate element difference to estimate local jacobian 

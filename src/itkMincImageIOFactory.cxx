@@ -1,16 +1,26 @@
+/* ----------------------------- MNI Header -----------------------------------
+@NAME       : 
+@DESCRIPTION: 
+@COPYRIGHT  :
+              Copyright 2012 Vladimir Fonov, McConnell Brain Imaging Centre, 
+              Montreal Neurological Institute, McGill University.
+              Permission to use, copy, modify, and distribute this
+              software and its documentation for any purpose and without
+              fee is hereby granted, provided that the above copyright
+              notice appear in all copies.  The author and McGill University
+              make no representations about the suitability of this
+              software for any purpose.  It is provided "as is" without
+              express or implied warranty.
+---------------------------------------------------------------------------- */
 #include "itkMincImageIOFactory.h"
 #include "itkCreateObjectFunction.h"
 #include "itkMincImageIO.h"
-#include <itkVersion.h>
-#include <iostream>
-
-#if ( ITK_VERSION_MAJOR > 3 ) 
-//TODO:
-//#include <itkHDF5ImageIOFactory.h>
-#endif //( ITK_VERSION_MAJOR > 3 ) 
+#include "itkVersion.h"
 
 namespace itk
 {
+  
+  
   void MincImageIOFactory::PrintSelf(std::ostream&, Indent) const
   {
     
@@ -51,7 +61,6 @@ namespace itk
       MincImageIOFactoryHasBeenRegistered = true;
       MincImageIOFactory::RegisterOneFactory();
     }
-    //TODO: deregister HDF IO
   }
 
 #if ( ITK_VERSION_MAJOR > 3 ) 

@@ -1,3 +1,18 @@
+/* ----------------------------- MNI Header -----------------------------------
+@NAME       : itkMincHelpers.h
+@DESCRIPTION: minc helper functions for ITK
+@COPYRIGHT  :
+              Copyright 2012 Vladimir Fonov, McConnell Brain Imaging Centre, 
+              Montreal Neurological Institute, McGill University.
+              Permission to use, copy, modify, and distribute this
+              software and its documentation for any purpose and without
+              fee is hereby granted, provided that the above copyright
+              notice appear in all copies.  The author and McGill University
+              make no representations about the suitability of this
+              software for any purpose.  It is provided "as is" without
+              express or implied warranty.
+---------------------------------------------------------------------------- */
+
 #ifndef _MINC_HELPERS_H_
 #define _MINC_HELPERS_H_
 
@@ -190,9 +205,9 @@ namespace minc
       const itk::Vector<double,3>& spacing, 
       const itk::Vector<double,3>& origin)
   {
-    image3d_complex::SizeType  imageSize3D = {{ dims[0], dims[1], dims[2]}};
-    image3d_complex::IndexType startIndex3D = { {0, 0, 0}};
-    image3d_complex::RegionType region;
+    typename T::SizeType  imageSize3D = {{ dims[0], dims[1], dims[2]}};
+    typename T::IndexType startIndex3D = { {0, 0, 0}};
+    typename T::RegionType region;
     region.SetSize  (imageSize3D);
     region.SetIndex (startIndex3D);
     image->SetLargestPossibleRegion (region);
@@ -213,9 +228,9 @@ namespace minc
         const fixed_vec<3, double>& spacing=fixed_vec<3, double>(1.0) , 
         const fixed_vec<3, double>& origin=fixed_vec<3, double>(0.0))
   {
-    image3d_complex::SizeType  imageSize3D = {{ dims[0], dims[1], dims[2]}};
-    image3d_complex::IndexType startIndex3D = { {0, 0, 0}};
-    image3d_complex::RegionType region;
+    typename T::SizeType  imageSize3D = {{ dims[0], dims[1], dims[2]}};
+    typename T::IndexType startIndex3D = { {0, 0, 0}};
+    typename T::RegionType region;
     region.SetSize  (imageSize3D);
     region.SetIndex (startIndex3D);
     image->SetLargestPossibleRegion (region);

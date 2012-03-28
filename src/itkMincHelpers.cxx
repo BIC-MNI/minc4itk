@@ -2,7 +2,7 @@
 @NAME       : 
 @DESCRIPTION: 
 @COPYRIGHT  :
-              Copyright 2006 Vladimir Fonov, McConnell Brain Imaging Centre, 
+              Copyright 2012 Vladimir Fonov, McConnell Brain Imaging Centre, 
               Montreal Neurological Institute, McGill University.
               Permission to use, copy, modify, and distribute this
               software and its documentation for any purpose and without
@@ -13,7 +13,7 @@
               express or implied warranty.
 ---------------------------------------------------------------------------- */
 #include <math.h>
-#include "minc_helpers.h"
+#include "itkMincHelpers.h"
 
 #include <itkMetaDataObject.h>
 

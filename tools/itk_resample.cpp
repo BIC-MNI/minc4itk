@@ -25,7 +25,7 @@
 #include <itkAffineTransform.h>
 #include <itkNearestNeighborInterpolateImageFunction.h>
 #include <itkBSplineInterpolateImageFunction.h>
-#include <minc_general_transform.h>
+#include <itkMincGeneralTransform.h>
 
 #include <unistd.h>
 #include <getopt.h>
@@ -38,7 +38,7 @@
 
 #include "itkMincImageIOFactory.h"
 #include "itkMincImageIO.h"
-#include "minc_helpers.h"
+#include "itkMincHelpers.h"
 
 //typedef itk::MincImageIO ImageIOType
 typedef itk::BSplineInterpolateImageFunction< minc::image3d, double, double >  InterpolatorType;

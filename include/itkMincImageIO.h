@@ -1,6 +1,6 @@
 /* ----------------------------- MNI Header -----------------------------------
-@NAME       : 
-@DESCRIPTION: 
+@NAME       : itkMincImageIO.h 
+@DESCRIPTION: ITK <-> MINC adapter
 @COPYRIGHT  :
               Copyright 2006 Vladimir Fonov, McConnell Brain Imaging Centre, 
               Montreal Neurological Institute, McGill University.

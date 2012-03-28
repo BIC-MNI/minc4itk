@@ -26,9 +26,7 @@
 
 #include "itkMincImageIOFactory.h"
 #include "itkMincImageIO.h"
-
-#include "minc_helpers.h"
-
+#include "itkMincHelpers.h"
 
 using namespace  std;
 using namespace  minc;

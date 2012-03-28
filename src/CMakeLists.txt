@@ -1,7 +1,10 @@
 set(ITKIOMINC_SRC
-     minc_helpers.cxx
+     itkMincHelpers.cxx
      itkMincImageIO.cxx
      itkMincImageIOFactory.cxx
+     itkMincTransformIO.cxx
+     itkMincTransformIOFactory.cxx
+     itkMincHelpers.cxx
 )
 INCLUDE_DIRECTORIES(${MINC2_INCLUDE_DIRS})
 

@@ -20,9 +20,7 @@
 #include <time_stamp.h>    // for creating minc style history entry
 #include "itkMincImageIOFactory.h"
 #include "itkMincImageIO.h"
-#include "minc_helpers.h"
-
-//#include <minc_wrappers.h>
+#include "itkMincHelpers.h"
 
 using namespace minc;
 using namespace std;

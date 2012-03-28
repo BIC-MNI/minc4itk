@@ -1,30 +1,26 @@
-/*=========================================================================
-Program:   Insight Segmentation & Registration Toolkit
-Module:    $RCSfile: itkMincImageIO.cxx,v $
-Language:  C++
-Date:      $Date: 2005/12/08 19:18:48 $
-Version:   $Revision: 1.22 $
-
-Copyright (c) Insight Software Consortium. All rights reserved.
-See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
-
-This software is distributed WITHOUT ANY WARRANTY; without even
-the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-PURPOSE.  See the above copyright notices for more information.
-
-=========================================================================*/
+/* ----------------------------- MNI Header -----------------------------------
+@NAME       : 
+@DESCRIPTION: 
+@COPYRIGHT  :
+              Copyright 2012 Vladimir Fonov, McConnell Brain Imaging Centre, 
+              Montreal Neurological Institute, McGill University.
+              Permission to use, copy, modify, and distribute this
+              software and its documentation for any purpose and without
+              fee is hereby granted, provided that the above copyright
+              notice appear in all copies.  The author and McGill University
+              make no representations about the suitability of this
+              software for any purpose.  It is provided "as is" without
+              express or implied warranty.
+---------------------------------------------------------------------------- */
 
 #include "itkMincImageIO.h"
 #include "itkIOCommon.h"
 #include "itkExceptionObject.h"
 #include "itkMetaDataObject.h"
-#include <itkMatrix.h>
-#include <itksys/SystemTools.hxx>
-#include <vnl/vnl_math.h>
-#include <zlib.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <vector>
+#include "itkMatrix.h"
+#include "itksys/SystemTools.hxx"
+#include "vnl/vnl_math.h"
+
  
 using namespace minc;
 
@@ -455,18 +451,20 @@ namespace itk
           break;
         case FLOAT:
           //let's see if there is metadata available
-          nc_type _datatype;
-          bool _is_signed;
-          if( itk::ExposeMetaData(thisDic,"datatype",_datatype) &&
-              itk::ExposeMetaData(thisDic,"signed",_is_signed) ) 
           {
-            datatype=_datatype;
-            is_signed=_is_signed;
-          } else {
-            datatype=NC_FLOAT;
-            is_signed=true;
+            nc_type _datatype=NC_FLOAT;
+            bool _is_signed=true;
+            
+            if( itk::ExposeMetaData(thisDic,"datatype",_datatype) &&
+                itk::ExposeMetaData(thisDic,"signed",_is_signed) ) 
+            {
+              datatype=_datatype;
+              is_signed=_is_signed;
+            } else {
+              datatype=NC_FLOAT;
+              is_signed=true;
+            }
           }
-          
           break;
         case DOUBLE:
           datatype=NC_DOUBLE;

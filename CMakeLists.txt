@@ -10,11 +10,13 @@ LINK_DIRECTORIES(${MINC2_LIBRARY_DIRS})
 SET(MINC4ITK_HEADERS 
   include/itkMincImageIOFactory.h
   include/itkMincImageIO.h
-  include/minc_general_transform.h
-  include/minc_helpers.h
+  include/itkMincGeneralTransform.h
+  include/itkMincHelpers.h
+  include/itkMincTransformIOFactory.h
+  include/itkMincTransformIO.h
 )
 
-SET(ITKIOMINC_LIBRARIES ITKIOMINC ${EZMINC_LIBRARIES})
+SET(ITKIOMINC_LIBRARIES ITKIOMINC ${VOLUME_IO_LIBRARIES} ${EZMINC_LIBRARIES})
 
 itk_module_impl()
 

@@ -21,7 +21,7 @@
 #include <iostream>
 #include <iomanip>
 
-#include "minc_helpers.h"
+#include "itkMincHelpers.h"
 
 typedef std::vector<double> double_vector;
 
