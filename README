@@ -1,0 +1,16 @@
+External module for integrtion of MINC with ITK
+
+
+Installation
+------------
+ * git clone git://itk.org/ITK.git
+ * git clone git@github.com:vfonov/minc4itk.git
+ * cd ITK
+ * edit CMake/UseITK.cmake , find the line foreach (ImageFormat  Nifti Nrrd Gipl HDF5 ) and add Minc at the end.
+ * cd Modules/External
+ * ln -s ../../../minc4itk
+ * cd ../../../
+ * mkdir build_itk
+ * cd build_itk
+ * ccmake ../ITK
+ * The rest is pretty standard...
