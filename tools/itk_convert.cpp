@@ -219,8 +219,8 @@ public:
             direction[2]*=(dwi_flip_z&&!use_b_matrix)?-b_scale:b_scale;
           }
           
-          std::ostringstream ossKey;
-          ossKey << "DWMRI_gradient_" << std::setw(4) << std::setfill('0') << i;
+          std::ostringstream ossKey2;
+          ossKey2 << "DWMRI_gradient_" << std::setw(4) << std::setfill('0') << i;
 
           std::ostringstream ossMetaString;
           ossMetaString << std::setw(9) << std::setiosflags(std::ios::fixed)
@@ -237,7 +237,7 @@ public:
 
           // std::cout<<ossKey.str()<<ossMetaString.str()<<std::endl;
           itk::EncapsulateMetaData<std::string>( dict,
-            ossKey.str(), ossMetaString.str() );
+            ossKey2.str(), ossMetaString.str() );
         }
         if(verbose)
           std::cout<<"Found "<<zero_b_value_cnt<<" Zero b-value components"<<std::endl;
