@@ -20,3 +20,5 @@ SET(ITKIOMINC_LIBRARIES ITKIOMINC ${VOLUME_IO_LIBRARIES} ${EZMINC_LIBRARIES})
 
 itk_module_impl()
 
+
+add_subdirectory(tools)
