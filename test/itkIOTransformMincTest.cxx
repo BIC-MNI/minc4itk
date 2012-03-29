@@ -74,7 +74,7 @@ static int oneTest(const char *goodname,const char *gridname)
   }
   catch( itk::ExceptionObject & excp )
   {
-    std::cerr << "Error while saving the transforms" << std::endl;
+    std::cerr << "Error while reading the transforms" << std::endl;
     std::cerr << excp << std::endl;
     std::cout << "[FAILED]" << std::endl;
     return EXIT_FAILURE;
@@ -120,7 +120,7 @@ static int oneTest(const char *goodname,const char *gridname)
   gridreader->SetFileName(gridname);
 
   // Testing writing
-  std::cout << "Testing write of non register transform : " << std::endl;
+  std::cout << "Testing write of non linear transform : " << std::endl;
   std::cout << std::flush;
   try
   {
@@ -135,7 +135,7 @@ static int oneTest(const char *goodname,const char *gridname)
   }
 
   // Testing writing
-  std::cout << "Testing read of non register transform : " << std::endl;
+  std::cout << "Testing read of non linear transform : " << std::endl;
   std::cout << std::flush;
   bool caught = false;
   try
@@ -144,13 +144,8 @@ static int oneTest(const char *goodname,const char *gridname)
   }
   catch( itk::ExceptionObject & excp )
   {
-    caught = true;
-    std::cout << "Caught exception as expected" << std::endl;
-    std::cout << excp << std::endl;
-  }
-  if ( !caught )
-  {
-    std::cerr << "Did not catch non registered transform" << std::endl;
+    std::cerr << "Error while reading the transforms" << std::endl;
+    std::cerr << excp << std::endl;
     std::cout << "[FAILED]" << std::endl;
     return EXIT_FAILURE;
   }

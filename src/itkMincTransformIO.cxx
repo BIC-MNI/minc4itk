@@ -20,6 +20,7 @@
 #include "itkVersion.h"
 #include <iostream>
 #include "itkMincTransformIO.h"
+#include <string.h>
 
 namespace itk
 {
@@ -44,18 +45,12 @@ namespace itk
   bool MincTransformIO::CanReadFile(const char *fileName)
   {
     std::string ext(itksys::SystemTools::GetFilenameLastExtension(fileName));
-    std::cout<<"MincTransformIO::CanReadFile:"<<fileName<<std::endl;
-    std::cout<<"Extension:"<<ext.c_str()<<std::endl;
-    
     return (ext == ".xfm" || ext==".XFM");
   }
 
   bool MincTransformIO::CanWriteFile(const char *fileName)
   {
     std::string ext(itksys::SystemTools::GetFilenameLastExtension(fileName));
-    std::cout<<"MincTransformIO::CanWriteFile:"<<fileName<<std::endl;
-    std::cout<<"Extension:"<<ext.c_str()<<std::endl;
-    
     return (ext == ".xfm" || ext==".XFM");
   }
 
@@ -151,7 +146,7 @@ namespace itk
           Real     separations[4];
           Real     starts[4];
           Real     direction_cosines[3][3];
-          
+          int      dim_map[4]={-1,-1,-1,-1},rev_map[4]={-1,-1,-1,-1};
           get_volume_sizes(grid,sizes);
           get_volume_separations(grid,separations);
           get_volume_starts(grid,starts);
@@ -161,11 +156,36 @@ namespace itk
           std::cout<<"Dimensions:"<<dim_names[0]<<","<<dim_names[1]<<","<<dim_names[2]<<","<<dim_names[3]<<std::endl;
           number_of_voxels=sizes[0]*sizes[1]*sizes[2]*sizes[3];
           
+          //have to find mapping to sane dimensions
+          for(int i=0;i<4;i++)
+          {
+            if(!strcmp(dim_names[i],"vector_dimension"))
+            {
+              dim_map[0]=i;
+              rev_map[i]=0;
+            }
+            else if(!strcmp(dim_names[i],"xspace"))
+            {
+              dim_map[1]=i;
+              rev_map[i]=1;
+            }
+            else if(!strcmp(dim_names[i],"yspace"))
+            {
+              dim_map[2]=i;
+              rev_map[i]=2;
+            }
+            else if(!strcmp(dim_names[i],"zspace"))
+            {
+              dim_map[3]=i;
+              rev_map[i]=3;
+            }
+          }
+          
           delete_dimension_names(grid,dim_names);
           
-          get_volume_direction_cosine(grid,0,direction_cosines[0]);
-          get_volume_direction_cosine(grid,1,direction_cosines[1]);
-          get_volume_direction_cosine(grid,2,direction_cosines[2]);
+          get_volume_direction_cosine(grid,dim_map[1],direction_cosines[0]);
+          get_volume_direction_cosine(grid,dim_map[2],direction_cosines[1]);
+          get_volume_direction_cosine(grid,dim_map[3],direction_cosines[2]);
           
           //TODO: rotate start according to direction cosines.... 
           
@@ -175,20 +195,20 @@ namespace itk
           
           for( unsigned int d = 0; d < NDimensions; d++ )
           {
-            fixedParameters[d]=sizes[d];
+            fixedParameters[d]=sizes[dim_map[d+1]];
           }
 
           for( unsigned int d = 0; d < NDimensions; d++ )
           {
-            fixedParameters[d + NDimensions]=starts[d] ;
+            fixedParameters[d + NDimensions]=starts[dim_map[d+1]] ;
           }
 
           for( unsigned int d = 0; d < NDimensions; d++ )
           {
-            fixedParameters[d + 2 * NDimensions]=separations[d];
+            fixedParameters[d + 2 * NDimensions]=separations[dim_map[d+1]];
           }
 
-          for( unsigned int di = 0; di < NDimensions; di++ )
+          for( unsigned int di = 0; di < NDimensions; di++ )//these should be already in sane order
           {
             for( unsigned int dj = 0; dj < NDimensions; dj++ )
             {
@@ -199,12 +219,12 @@ namespace itk
           parameters.SetSize(number_of_voxels);
           
           /*--- change all values over 100 to 100 */
-          
-          for(int v1 = 0,i=0;  v1 < sizes[0];  ++v1 ) {
-              for(int v2 = 0;  v2 < sizes[1];  ++v2 ) {
-                  for(int v3 = 0;  v3 < sizes[2];  ++v3 ) {
-                    for(int v4 = 0;  v4 < sizes[3];  ++v4 ) {
-                        parameters.SetElement(i,get_volume_real_value( grid, v1, v2, v3,v4, 0 ));
+          int v[4];int i=0;
+          for(v[3] = 0;  v[3] < sizes[dim_map[3]];  ++v[3] )  {
+              for(v[2] = 0;  v[2] < sizes[dim_map[2]];  ++v[2] ) {
+                  for(v[1] = 0;  v[1] < sizes[dim_map[1]];  ++v[1] ) {
+                    for(v[0] = 0;  v[0] < sizes[dim_map[0]];  ++v[0] ) {
+                        parameters.SetElement(i,get_volume_real_value( grid, v[rev_map[0]], v[rev_map[1]], v[rev_map[2]], v[rev_map[3]], 0 ));
                         i++;
                       }
                   }
@@ -215,7 +235,8 @@ namespace itk
           this->CreateTransform(transform,"DisplacementFieldTransform_double_3_3");
           transform->SetFixedParameters(fixedParameters);
           transform->SetParametersByValue(parameters);
-          
+          this->GetReadTransformList().push_back(transform);
+
           break;
         }
         default:
