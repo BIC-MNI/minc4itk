@@ -20,20 +20,20 @@
 #include <vector>
 #include <algorithm>
 
-#include <itkArray.h>
+#include "itkArray.h"
 
 #if ( ITK_VERSION_MAJOR > 3 ) 
-#include <itkImage.h>
+#include "itkImage.h"
 #else
-#include <itkOrientedImage.h>
+#include "itkOrientedImage.h"
 #endif 
 
-#include <itkImageRegionIteratorWithIndex.h>
-#include <itkImageRegionConstIteratorWithIndex.h>
+#include "itkImageRegionIteratorWithIndex.h"
+#include "itkImageRegionConstIteratorWithIndex.h"
 
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-#include <itkImageIOFactory.h>
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+#include "itkImageIOFactory.h"
 
 #include "itkMincImageIOFactory.h"
 #include "itkMincImageIO.h"
@@ -47,28 +47,34 @@
 namespace minc
 {
   
+  //! default label voxel type
   typedef unsigned char minc_mask_voxel;
   
+  //! default minc file voxel type
 	typedef float voxel_type;
+  
+  //! default minc volume dimension
 	const int volume_dimensions = 3;
   
+  //! default minc grid volume voxel type
   typedef itk::Vector<float,volume_dimensions>    def_vector;
+  //! minc tag point
   typedef itk::Point<double,volume_dimensions>    tag_point;
   typedef std::vector<tag_point>  tag_points;
+  //! default minc complex voxel type
 	typedef std::complex < voxel_type > complex;
 
 #if ( ITK_VERSION_MAJOR > 3 ) 
-	typedef itk::Image < complex, volume_dimensions > image3d_complex;
-	typedef itk::Image < voxel_type, volume_dimensions > image3d;
+	typedef itk::Image < complex, volume_dimensions >         image3d_complex;
+	typedef itk::Image < voxel_type, volume_dimensions >      image3d;
 	typedef itk::Image < minc_mask_voxel, volume_dimensions > mask3d;
-	typedef itk::Image < def_vector, volume_dimensions > def3d;
+	typedef itk::Image < def_vector, volume_dimensions >      def3d;
 #else
-	typedef itk::OrientedImage < complex, volume_dimensions > image3d_complex;
-	typedef itk::OrientedImage < voxel_type, volume_dimensions > image3d;
+	typedef itk::OrientedImage < complex, volume_dimensions >        image3d_complex;
+	typedef itk::OrientedImage < voxel_type, volume_dimensions >     image3d;
 	typedef itk::OrientedImage < minc_mask_voxel, volume_dimensions > mask3d;
-	typedef itk::OrientedImage < def_vector, volume_dimensions > def3d;
+	typedef itk::OrientedImage < def_vector, volume_dimensions >     def3d;
 #endif
-
   
 	
 	typedef itk::ImageRegionIteratorWithIndex < image3d > image3d_iterator;
@@ -258,7 +264,7 @@ namespace minc
     return s;
   }
   
-// a helper function for minc reading
+  //! a helper function for minc reading
   template <class T> typename T::Pointer load_minc(const char *file)
   {
     typedef itk::MincImageIO ImageIOType;
@@ -273,13 +279,19 @@ namespace minc
     return reader->GetOutput();
   }
 
-  
+  //! set minc file storage type
   void set_minc_storage_type(itk::Object* image,nc_type datatype,bool is_signed);
+  
+  //! copy metadata
   void copy_metadata(itk::Object* dst,itk::Object* src);
+  
+  //! copy minc dimension order
   void copy_dimorder(itk::Object* dst,itk::Object* src);
+  
+  //! append minc-style history
   void append_history(itk::Object* dst,const std::string& history);
    
-  // a helper function for minc writing
+  //! a helper function for minc writing
   template <class T> void save_minc(const char *file,typename T::Pointer img)
   {
     typedef itk::MincImageIO ImageIOType;
@@ -292,14 +304,6 @@ namespace minc
     writer->Update();
   } 
   
-  //! allocate volume with spacing 1mm and origin 0,0,0
-  //! \param[out] image - volume to allocate
-  //! \param dims - dimensions (voxels)
-//   template<class T> void allocate_image3d(typename T::Pointer &image, const itk::Size<3> &dims)
-//   {
-//     allocate_image3d<T>(image,IDX<unsigned int>(dims[0],dims[1],dims[2]));
-//   }
-
   //! calculate volume min and max
   int get_image_limits(image3d::Pointer, voxel_type &min, voxel_type &max);
   //! calculate volume min and max
@@ -398,7 +402,7 @@ namespace minc
     rdr.open(path,true,true);
     setup_itk_image<T>(rdr,img);
   }
-
+  
 };
 
 #endif //_MINC_HELPERS_H_

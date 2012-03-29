@@ -116,11 +116,13 @@ namespace itk
     try
     {
       _rdr=new minc_1_reader;
-      _rdr->open(m_FileName.c_str(),true); //read in positive direction, always
       
-      SetNumberOfDimensions((_rdr->ndim(1)>0?1:0)+(_rdr->ndim(2)>0?1:0)+(_rdr->ndim(3)>0?1:0)+(_rdr->ndim(4)>0?1:0));
+      //read in positive direction, always
+      _rdr->open(m_FileName.c_str(),true); 
       
-      //SetMetaDataDictionary(thisDic);
+      //always treat vector_dimension and time_dimension as vectors
+      SetNumberOfDimensions((_rdr->ndim(1)>0?1:0)+(_rdr->ndim(2)>0?1:0)+(_rdr->ndim(3)>0?1:0)); 
+      
       // set number of dimensions for ITK
       int image_max_length=_rdr->var_length(MIimagemax);
       int image_min_length=_rdr->var_length(MIimagemin);

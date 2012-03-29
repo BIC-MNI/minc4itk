@@ -772,6 +772,5 @@ namespace minc
     itk::EncapsulateMetaData( dst->GetMetaDataDictionary(),"history",old_history);
   }
 
-  
 };//minc
 
