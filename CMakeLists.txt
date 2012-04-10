@@ -83,10 +83,10 @@ ELSE( NOT MINC_TOOLKIT_BUILD)
     ITKIOMINC  ${LIBRARY_INSTALL} 
     DESTINATION lib)
 
-  ADD_EXECUTABLE(itk_convert  minc4itk/tools/itk_convert.cpp)
+  ADD_EXECUTABLE(itk_convert  tools/itk_convert.cpp)
   TARGET_LINK_LIBRARIES(itk_convert ITKIOMINC ${VOLUME_IO_LIBRARY} )
 
-  ADD_EXECUTABLE(itk_resample minc4itk/tools/itk_resample.cpp)
+  ADD_EXECUTABLE(itk_resample tools/itk_resample.cpp)
   TARGET_LINK_LIBRARIES(itk_resample ITKIOMINC ${VOLUME_IO_LIBRARY} )
 
   INSTALL(
