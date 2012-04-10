@@ -67,14 +67,11 @@ ELSE( NOT MINC_TOOLKIT_BUILD)
   ADD_LIBRARY(ITKIOMINC ${ITKIOMINC_SRC} ${ITKIOMINC_HEADER})
 
   TARGET_LINK_LIBRARIES(ITKIOMINC
-    minc_io
+    ${EZMINC_LIBRARIES}
+    ${VOLUME_IO_LIBRARIES}
     ${ITK_LIBRARIES}
-    itkvnl_algo 
-    itkvnl 
-    volume_io2
-    minc2
-    m 
-    z  )
+    ${MINC2_LIBRARIES}
+   )
 
   INSTALL(FILES ${ITKIOMINC_HEADER}
     DESTINATION include)
@@ -84,10 +81,10 @@ ELSE( NOT MINC_TOOLKIT_BUILD)
     DESTINATION lib)
 
   ADD_EXECUTABLE(itk_convert  tools/itk_convert.cpp)
-  TARGET_LINK_LIBRARIES(itk_convert ITKIOMINC ${VOLUME_IO_LIBRARY} )
+  TARGET_LINK_LIBRARIES(itk_convert ITKIOMINC )
 
   ADD_EXECUTABLE(itk_resample tools/itk_resample.cpp)
-  TARGET_LINK_LIBRARIES(itk_resample ITKIOMINC ${VOLUME_IO_LIBRARY} )
+  TARGET_LINK_LIBRARIES(itk_resample ITKIOMINC  )
 
   INSTALL(
     TARGETS
@@ -97,6 +94,45 @@ ELSE( NOT MINC_TOOLKIT_BUILD)
       bin )
 
   SET(MINC4ITK_LIBRARY ITKIOMINC)
+  
+  set(MINC4ITK_INCLUDE_DIRS_CONFIG   
+      ${MINC2_INCLUDE_DIRS} 
+      ${CMAKE_CURRENT_SOURCE_DIR}/Include 
+      ${CMAKE_CURRENT_SOURCE_DIR}/GLUT_windows/Include )
+
+  set(MINC4ITK_LIBRARY_DIRS_CONFIG   ${CMAKE_CURRENT_BINARY_DIR} ${MINC2_LIBRARY_DIRS} )
+  set(MINC4ITK_LIBRARIES_CONFIG      
+    ITKIOMINC     
+    ${EZMINC_LIBRARIES}
+    ${VOLUME_IO_LIBRARIES}
+    ${ITK_LIBRARIES}
+    ${MINC2_LIBRARIES} )
+
+  configure_file(src/MINC4ITKConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/MINC4ITKConfig.cmake @ONLY )
+
+  # config for install dir
+  set(MINC4ITK_INCLUDE_DIRS_CONFIG  
+      ${CMAKE_INSTALL_PREFIX}/include/bicgl/OpenGL_graphics/Include 
+      ${CMAKE_INSTALL_PREFIX}/include/bicgl/Include 
+      ${CMAKE_INSTALL_PREFIX}/include/bicgl/GLUT_windows/Include )
+
+  set(MINC4ITK_LIBRARY_DIRS_CONFIG  ${CMAKE_INSTALL_PREFIX}/lib ${MINC2_LIBRARY_DIRS})
+  set(MINC4ITK_LIBRARIES_CONFIG     
+      ITKIOMINC
+      ${EZMINC_LIBRARIES}
+      ${VOLUME_IO_LIBRARIES}
+      ${ITK_LIBRARIES}
+      ${MINC2_LIBRARIES} )
+
+  configure_file(src/MINC4ITKConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/MINC4ITKConfig.cmake @ONLY )
+
+  INSTALL(FILES 
+      ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/MINC4ITKConfig.cmake
+    DESTINATION lib
+    COMPONENT Development)
+  
 
 ENDIF(NOT MINC_TOOLKIT_BUILD)
 
