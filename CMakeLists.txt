@@ -42,10 +42,10 @@ ELSE( NOT MINC_TOOLKIT_BUILD)
 
   SET( ITKIOMINC_HEADER
     include/itkMincImageIO.h
-    include/itkMincTransformIOFactory.h
     include/itkMincTransformIO.h
     include/itkMincGeneralTransform.h
     include/itkMincHelpers.h
+    include/itkMincImageIOFactory.h
   )
 
   IF( ITK_VERSION_MAJOR VERSION_EQUAL 4 )
@@ -57,7 +57,7 @@ ELSE( NOT MINC_TOOLKIT_BUILD)
     
     SET(ITKIOMINC_HEADER
       ${ITKIOMINC_HEADER}
-      include/itkMincImageIOFactory.h
+      include/itkMincTransformIOFactory.h
     )
   ENDIF(ITK_VERSION_MAJOR VERSION_EQUAL 4)
 
