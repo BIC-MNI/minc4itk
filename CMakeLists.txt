@@ -7,8 +7,12 @@ cmake_minimum_required(VERSION 2.6)
 
 # either compile as ITKv4 module or a stand-alone library for ITKv3 or ITKv4
 SET(ITK_MODULE_BUILD OFF)
-SET(MINC4ITK_EXTERNALLY_CONFIGURED OFF)
 
+if(itk-module)
+SET(ITK_MODULE_BUILD ON)
+endif(itk-module)
+
+SET(MINC4ITK_EXTERNALLY_CONFIGURED OFF)
 
 
 IF(MINC_TOOLKIT_BUILD)
