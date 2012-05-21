@@ -147,8 +147,8 @@ public:
     {
       //We have got MINC-style DTI metadata
       if(bvalues.size()!=direction_x.size() || 
-        bvalues.size()!=direction_y.size() ||
-        bvalues.size()!=direction_z.size() )
+         bvalues.size()!=direction_y.size() ||
+         bvalues.size()!=direction_z.size() )
       {
         std::cerr<<"WARNING: Different number of components of DTI directions"<<std::endl
                 <<" Skipping DTI metadata conversion!"<<std::endl;
@@ -451,8 +451,13 @@ public:
       std::cerr<<"ERROR: requested DWI headers are missing!"<<std::endl;
     }
 
+    // let's analyze direction cosines, and convert image into something resambling neurological notation
     if(verbose)
-      std::cout<<"Writing "<<fname<<"..."<<std::endl;
+    {
+      std::cout<<"Dimensions:"<<img->GetLargestPossibleRegion().GetSize()<<" ";
+      std::cout<<"Origin:"<<img->GetOrigin()<<std::endl;
+      std::cout<<"Directions:"<<img->GetDirection();
+    }
     
     if(inv_x||inv_y||inv_z)
     {
@@ -491,10 +496,14 @@ public:
     
     if(!history.empty())
       minc::append_history(img,history);
+
     
     typename itk::CastImageFilter< TInputImage, TOutputImage >::Pointer cast=itk::CastImageFilter< TInputImage, TOutputImage >::New();
     
     cast->SetInput(img);
+    
+    if(verbose)
+      std::cout<<"Writing "<<fname<<"..."<<std::endl;
     
     typename itk::ImageFileWriter< TOutputImage >::Pointer writer = itk::ImageFileWriter<TOutputImage >::New();
     writer->SetFileName(fname);

@@ -41,8 +41,16 @@
 #include "itkMincHelpers.h"
 
 //typedef itk::MincImageIO ImageIOType
-typedef itk::BSplineInterpolateImageFunction< minc::image3d, double, double >  InterpolatorType;
-typedef itk::ResampleImageFilter<minc::image3d, minc::image3d> FilterType;
+typedef itk::ImageBase<3>   Image3DBase;
+typedef itk::Image<float,3> Float3DImage;
+typedef itk::Image<int,3>   Int3DImage;
+
+
+typedef itk::BSplineInterpolateImageFunction< Float3DImage, double, double >  InterpolatorType;
+typedef itk::NearestNeighborInterpolateImageFunction< Int3DImage, double >    NNInterpolatorType;
+
+typedef itk::ResampleImageFilter<Float3DImage, Float3DImage> FloatFilterType;
+typedef itk::ResampleImageFilter<Int3DImage, Int3DImage> IntFilterType;
 typedef minc::XfmTransform<double,3,3>  TransformType;
 
 using namespace  std;
@@ -56,18 +64,19 @@ void show_usage (const char * prog)
     << "--transform <xfm_transform> "<<std::endl
     << "--order <n> spline order, default 2 "<<std::endl
     << "--uniformize <step> - will make a volume with uniform step size and no direction cosines" << std::endl
-    << "--invert_transform  - apply inverted transform"<<std::endl;
+    << "--invert_transform  - apply inverted transform"<<std::endl
+    << "--labels - assume that input data is discrete labels"<<std::endl;
 }
 
-void generate_uniform_sampling(FilterType* flt, const minc::image3d* img,double step)
+template<class T> void generate_uniform_sampling(T* flt, const Image3DBase* img,double step)
 {
   //obtain physical coordinats of all image corners
-  minc::image3d::RegionType r=img->GetLargestPossibleRegion();
+  Image3DBase::RegionType r=img->GetLargestPossibleRegion();
   std::vector<double> corner[3];
   for(int i=0;i<8;i++)
   {
-    minc::image3d::IndexType idx;
-    minc::image3d::PointType c;
+    Image3DBase::IndexType idx;
+    Image3DBase::PointType c;
     idx[0]=r.GetIndex()[0]+r.GetSize()[0]*(i%2);
     idx[1]=r.GetIndex()[1]+r.GetSize()[1]*((i/2)%2);
     idx[2]=r.GetIndex()[2]+r.GetSize()[2]*((i/4)%2);
@@ -75,10 +84,10 @@ void generate_uniform_sampling(FilterType* flt, const minc::image3d* img,double 
     for(int j=0;j<3;j++)
       corner[j].push_back(c[j]);
   }
-  minc::image3d::IndexType start;
-  FilterType::SizeType size;
-  FilterType::OriginPointType org;
-  minc::image3d::SpacingType spc;
+  Image3DBase::IndexType start;
+  typename T::SizeType size;
+  typename T::OriginPointType org;
+  Image3DBase::SpacingType spc;
   spc.Fill(step);
   for(int j=0;j<3;j++)
   {
@@ -86,7 +95,7 @@ void generate_uniform_sampling(FilterType* flt, const minc::image3d* img,double 
     size[j]=ceil((corner[j][7]-corner[j][0])/step);
     org[j]=corner[j][0];
   }
-  minc::image3d::DirectionType identity;
+  Float3DImage::DirectionType identity;
   identity.SetIdentity();
   flt->SetOutputDirection(identity);
   start.Fill(0);
@@ -103,6 +112,7 @@ int main (int argc, char **argv)
   std::string like_f,xfm_f,output_f,input_f;
   double uniformize=0.0;
   int invert=0;
+  int labels=0;
   char *history = time_stamp(argc, argv); 
   
   static struct option long_options[] = {
@@ -114,6 +124,7 @@ int main (int argc, char **argv)
     {"order",    required_argument, 0, 'o'},
     {"uniformize",    required_argument, 0, 'u'},
     {"invert_transform", no_argument, &invert, 1},
+    {"labels",no_argument, &labels, 1},
 		{0, 0, 0, 0}
 		};
   
@@ -164,87 +175,173 @@ int main (int argc, char **argv)
   
 	try
   {
+    if(labels)
+      order=0;
+    
     itk::RegisterMincIO();
-    
-    itk::ImageFileReader<minc::image3d >::Pointer reader = itk::ImageFileReader<minc::image3d >::New();
-    
-    //initializing the reader
-    reader->SetFileName(input_f.c_str());
-    reader->Update();
-    
-		minc::image3d::Pointer in=reader->GetOutput();
 
-		FilterType::Pointer filter  = FilterType::New();
     
-    //creating coordinate transformation objects
-		TransformType::Pointer transform = TransformType::New();
-    if(!xfm_f.empty())
+    if(labels)
     {
-      //reading a minc style xfm file
-      transform->OpenXfm(xfm_f.c_str());
-      if(!invert) transform->Invert(); //should be inverted by default to walk through target space
-      filter->SetTransform( transform );
-    }
-
-    //creating the interpolator
-		InterpolatorType::Pointer interpolator = InterpolatorType::New();
-		interpolator->SetSplineOrder(order);
-		filter->SetInterpolator( interpolator );
-		filter->SetDefaultPixelValue( 0 );
-    
-    //this is for processing using batch system
-    filter->SetNumberOfThreads(1);
-    
-    minc::image3d::Pointer like=0;
-    if(!like_f.empty())
-    {
-      itk::ImageFileReader<minc::image3d >::Pointer reader = itk::ImageFileReader<minc::image3d >::New();
-      reader->SetFileName(like_f.c_str());
+      itk::ImageFileReader<Int3DImage >::Pointer reader = itk::ImageFileReader<Int3DImage >::New();
+      
+      //initializing the reader
+      reader->SetFileName(input_f.c_str());
       reader->Update();
-      if(uniformize!=0.0)
+      
+      Int3DImage::Pointer in=reader->GetOutput();
+
+      IntFilterType::Pointer filter  = IntFilterType::New();
+      
+      //creating coordinate transformation objects
+      TransformType::Pointer transform = TransformType::New();
+      if(!xfm_f.empty())
       {
-        generate_uniform_sampling(filter,reader->GetOutput(),uniformize);
-      } else {
-        filter->SetOutputParametersFromImage(reader->GetOutput());
-        filter->SetOutputDirection(reader->GetOutput()->GetDirection());
+        //reading a minc style xfm file
+        transform->OpenXfm(xfm_f.c_str());
+        if(!invert) transform->Invert(); //should be inverted by default to walk through target space
+        filter->SetTransform( transform );
       }
-      like=reader->GetOutput();
-      like->DisconnectPipeline();
-    }
-    else
-    {
-      if(uniformize!=0.0)
+
+      //creating the interpolator
+      NNInterpolatorType::Pointer interpolator = NNInterpolatorType::New();
+      filter->SetInterpolator( interpolator );
+      
+      filter->SetDefaultPixelValue( 0 );
+      
+      //this is for processing using batch system
+      filter->SetNumberOfThreads(1);
+      
+      Int3DImage::Pointer like=0;
+      if(!like_f.empty())
       {
-        generate_uniform_sampling(filter,in,uniformize);
-      } else {
-        //we are using original sampling
-        filter->SetOutputParametersFromImage(in);
-        filter->SetOutputDirection(in->GetDirection());
+        itk::ImageFileReader<Int3DImage >::Pointer reader = itk::ImageFileReader<Int3DImage >::New();
+        reader->SetFileName(like_f.c_str());
+        reader->Update();
+        if(uniformize!=0.0)
+        {
+          generate_uniform_sampling<IntFilterType>(filter,reader->GetOutput(),uniformize);
+        } else {
+          filter->SetOutputParametersFromImage(reader->GetOutput());
+          filter->SetOutputDirection(reader->GetOutput()->GetDirection());
+        }
+        like=reader->GetOutput();
+        like->DisconnectPipeline();
       }
+      else
+      {
+        if(uniformize!=0.0)
+        {
+          generate_uniform_sampling<IntFilterType>(filter,in,uniformize);
+        } else {
+          //we are using original sampling
+          filter->SetOutputParametersFromImage(in);
+          filter->SetOutputDirection(in->GetDirection());
+        }
+      }
+      
+      filter->SetInput(in);
+      filter->Update();
+      //copy the metadate information, for some reason it is not preserved
+      //filter->GetOutput()->SetMetaDataDictionary(reader->GetOutput()->GetMetaDataDictionary());
+      Int3DImage::Pointer out=filter->GetOutput();
+      minc::copy_metadata(out,in);
+      minc::append_history(out,history);
+      free(history);
+      
+      //correct dimension order
+      if(like.IsNotNull())
+        minc::copy_dimorder(out,like);
+      
+      //generic file writer
+      itk::ImageFileWriter< Int3DImage >::Pointer writer = itk::ImageFileWriter<Int3DImage >::New();
+      writer->SetFileName(output_f.c_str());
+      
+      writer->SetInput( out );
+      //writer->UseInputMetaDataDictionaryOn();
+      
+      writer->Update();
+    } else {
+      itk::ImageFileReader<Float3DImage >::Pointer reader = itk::ImageFileReader<Float3DImage >::New();
+      
+      //initializing the reader
+      reader->SetFileName(input_f.c_str());
+      reader->Update();
+      
+      Float3DImage::Pointer in=reader->GetOutput();
+
+      FloatFilterType::Pointer filter  = FloatFilterType::New();
+      
+      //creating coordinate transformation objects
+      TransformType::Pointer transform = TransformType::New();
+      if(!xfm_f.empty())
+      {
+        //reading a minc style xfm file
+        transform->OpenXfm(xfm_f.c_str());
+        if(!invert) transform->Invert(); //should be inverted by default to walk through target space
+        filter->SetTransform( transform );
+      }
+
+      //creating the interpolator
+      InterpolatorType::Pointer interpolator = InterpolatorType::New();
+      interpolator->SetSplineOrder(order);
+      filter->SetInterpolator( interpolator );
+      
+      filter->SetDefaultPixelValue( 0 );
+      
+      //this is for processing using batch system
+      filter->SetNumberOfThreads(1);
+      
+      Float3DImage::Pointer like=0;
+      if(!like_f.empty())
+      {
+        itk::ImageFileReader<Float3DImage >::Pointer reader = itk::ImageFileReader<Float3DImage >::New();
+        reader->SetFileName(like_f.c_str());
+        reader->Update();
+        if(uniformize!=0.0)
+        {
+          generate_uniform_sampling<FloatFilterType>(filter,reader->GetOutput(),uniformize);
+        } else {
+          filter->SetOutputParametersFromImage(reader->GetOutput());
+          filter->SetOutputDirection(reader->GetOutput()->GetDirection());
+        }
+        like=reader->GetOutput();
+        like->DisconnectPipeline();
+      }
+      else
+      {
+        if(uniformize!=0.0)
+        {
+          generate_uniform_sampling<FloatFilterType>(filter,in,uniformize);
+        } else {
+          //we are using original sampling
+          filter->SetOutputParametersFromImage(in);
+          filter->SetOutputDirection(in->GetDirection());
+        }
+      }
+      
+      filter->SetInput(in);
+      filter->Update();
+      //copy the metadate information, for some reason it is not preserved
+      //filter->GetOutput()->SetMetaDataDictionary(reader->GetOutput()->GetMetaDataDictionary());
+      Float3DImage::Pointer out=filter->GetOutput();
+      minc::copy_metadata(out,in);
+      minc::append_history(out,history);
+      free(history);
+      
+      //correct dimension order
+      if(like.IsNotNull())
+        minc::copy_dimorder(out,like);
+      
+      //generic file writer
+      itk::ImageFileWriter< Float3DImage >::Pointer writer = itk::ImageFileWriter<Float3DImage >::New();
+      writer->SetFileName(output_f.c_str());
+      
+      writer->SetInput( out );
+      //writer->UseInputMetaDataDictionaryOn();
+      
+      writer->Update();
     }
-    
-		filter->SetInput(in);
-    filter->Update();
-    //copy the metadate information, for some reason it is not preserved
-    //filter->GetOutput()->SetMetaDataDictionary(reader->GetOutput()->GetMetaDataDictionary());
-    minc::image3d::Pointer out=filter->GetOutput();
-    minc::copy_metadata(out,in);
-    minc::append_history(out,history);
-    free(history);
-    
-    //correct dimension order
-    if(like.IsNotNull())
-      minc::copy_dimorder(out,like);
-    
-    //generic file writer
-    itk::ImageFileWriter< minc::image3d >::Pointer writer = itk::ImageFileWriter<minc::image3d >::New();
-    writer->SetFileName(output_f.c_str());
-     
-    writer->SetInput( out );
-    //writer->UseInputMetaDataDictionaryOn();
-    
-    writer->Update();
-    
 		return 0;
 	} catch (const minc::generic_error & err) {
     cerr << "Got an error at:" << err.file () << ":" << err.line () << endl;
