@@ -107,6 +107,10 @@ template<class T> void generate_uniform_sampling(T* flt, const Image3DBase* img,
 
 int main (int argc, char **argv)
 {
+  int store_float=0;
+  int store_short=0;
+  int store_byte=0;
+  
   int verbose=0, clobber=0,skip_grid=0;
   int order=2;
   std::string like_f,xfm_f,output_f,input_f;
@@ -125,6 +129,10 @@ int main (int argc, char **argv)
     {"uniformize",    required_argument, 0, 'u'},
     {"invert_transform", no_argument, &invert, 1},
     {"labels",no_argument, &labels, 1},
+    {"float",   no_argument, &store_float, 1},
+    {"short",   no_argument, &store_short, 1},
+    {"byte",    no_argument, &store_byte,  1},
+    
 		{0, 0, 0, 0}
 		};
   
@@ -256,6 +264,17 @@ int main (int argc, char **argv)
       //generic file writer
       itk::ImageFileWriter< Int3DImage >::Pointer writer = itk::ImageFileWriter<Int3DImage >::New();
       writer->SetFileName(output_f.c_str());
+
+      if(store_float)
+      {
+        minc::set_minc_storage_type(out,NC_FLOAT,true);
+        
+      } else if(store_short) {
+        minc::set_minc_storage_type(out,NC_SHORT,true);
+      } else if(store_byte) {
+        minc::set_minc_storage_type(out,NC_BYTE,false);
+      }
+      
       
       writer->SetInput( out );
       //writer->UseInputMetaDataDictionaryOn();
@@ -336,6 +355,16 @@ int main (int argc, char **argv)
       //generic file writer
       itk::ImageFileWriter< Float3DImage >::Pointer writer = itk::ImageFileWriter<Float3DImage >::New();
       writer->SetFileName(output_f.c_str());
+      
+      if(store_float)
+      {
+        minc::set_minc_storage_type(out,NC_FLOAT,true);
+        
+      } else if(store_short) {
+        minc::set_minc_storage_type(out,NC_SHORT,true);
+      } else if(store_byte) {
+        minc::set_minc_storage_type(out,NC_BYTE,false);
+      }
       
       writer->SetInput( out );
       //writer->UseInputMetaDataDictionaryOn();
