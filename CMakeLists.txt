@@ -101,19 +101,6 @@ ELSE( ITK_MODULE_BUILD )
     ITKIOMINC  ${LIBRARY_INSTALL} 
     DESTINATION lib)
 
-  ADD_EXECUTABLE(itk_convert  tools/itk_convert.cpp)
-  TARGET_LINK_LIBRARIES(itk_convert ITKIOMINC )
-
-  ADD_EXECUTABLE(itk_resample tools/itk_resample.cpp)
-  TARGET_LINK_LIBRARIES(itk_resample ITKIOMINC  )
-
-  INSTALL(
-    TARGETS
-      itk_resample
-      itk_convert
-    DESTINATION 
-      bin )
-
   SET(MINC4ITK_LIBRARY ITKIOMINC)
   
   set(MINC4ITK_INCLUDE_DIRS_CONFIG   
