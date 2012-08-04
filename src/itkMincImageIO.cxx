@@ -128,55 +128,53 @@ namespace itk
       int image_min_length=_rdr->var_length(MIimagemin);
       bool slice_normalized=image_max_length>1;
 
-      
       switch(_rdr->datatype())
       {
         case NC_BYTE:
           if(slice_normalized)
-            m_ComponentType=FLOAT;
+            SetComponentType(ImageIOBase::FLOAT);
           else
-            m_ComponentType=UCHAR;
+            SetComponentType(ImageIOBase::UCHAR);
           break;
-          
         case NC_SHORT: 
-          
           if(slice_normalized)
-            m_ComponentType=FLOAT;
+            SetComponentType(ImageIOBase::FLOAT);
           else
-            m_ComponentType=_rdr->is_signed()?SHORT:USHORT;
+            SetComponentType(_rdr->is_signed()?ImageIOBase::SHORT:ImageIOBase::USHORT);
           break;
-          
         case NC_INT:
           if(slice_normalized)
-            m_ComponentType=FLOAT;
+            SetComponentType(ImageIOBase::FLOAT);
           else
-            m_ComponentType=_rdr->is_signed()?INT:UINT;
+            SetComponentType(_rdr->is_signed()?ImageIOBase::INT:ImageIOBase::UINT);
           break;
-          
         case NC_FLOAT:
-          m_ComponentType=FLOAT;
+          SetComponentType(ImageIOBase::FLOAT);
           break;
-        
         case NC_DOUBLE:
-          m_ComponentType=DOUBLE;
+          SetComponentType(ImageIOBase::DOUBLE);
           break;
-        
         default:
           throw ExceptionObject(__FILE__,__LINE__,"Unsupported data type");
       }
       
-      if(_rdr->ndim(0)>0 && _rdr->ndim(4)==0) {
-        m_PixelType=VECTOR;
+      if(_rdr->ndim(0)>0 && _rdr->ndim(4)==0) { // we have vector_dimension = this is either vector or RGB image, we don't know
+        SetPixelType(ImageIOBase::VECTOR);
         SetNumberOfComponents(_rdr->ndim(0));
-      } else if(_rdr->ndim(0)==0 && _rdr->ndim(4)>0) {
-        m_PixelType=VECTOR;
+      } else if(_rdr->ndim(0)==0 && _rdr->ndim(4)>0) { //we have time dimension - could be anything
+        
         SetNumberOfComponents(_rdr->ndim(4));
-      } else if(_rdr->ndim(0)>0 && _rdr->ndim(4)>0) {
-          throw ExceptionObject(__FILE__,__LINE__,"Combining time and vector dimension in one file is not supported!");
+        
+        //let's try to figure out what this could be...
+        
+        SetPixelType(ImageIOBase::VECTOR);
+        
+        
+      } else if(_rdr->ndim(0)>0 && _rdr->ndim(4)>0) { //we have both vector_dimension and time , too complicated for now
+        throw ExceptionObject(__FILE__,__LINE__,"Combining time and vector dimension in one file is not supported!");
       } else
-        m_PixelType=SCALAR;
+        SetPixelType(ImageIOBase::SCALAR);
 
-      
       for(int i=1,c=0; i < 4; i++)
       {
         if(_rdr->ndim(i)<=0) continue;
@@ -240,29 +238,9 @@ namespace itk
       std::string classname(GetNameOfClass());
       itk::EncapsulateMetaData<std::string>(thisDic,ITK_InputFilterName, classname);
       //now let's store some metadata
-      //internally image is always stored 
-      
-      /*itk::EncapsulateMetaData<itk::SpatialOrientation::ValidCoordinateOrientationFlags>
-          (thisDic,ITK_CoordinateOrientation, itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LPI);*/
       
       itk::EncapsulateMetaData(thisDic,"datatype",_rdr->datatype());
       itk::EncapsulateMetaData(thisDic,"signed"  ,_rdr->is_signed());
-      
-      /*switch(_rdr->datatype())
-      {
-        case NC_SHORT:
-          
-          itk::EncapsulateMetaData<std::string>(thisDic,ITK_OnDiskStorageTypeName,_rdr->is_signed()?std::string(typeid(short).name()):std::string(typeid(unsigned short).name()));
-          break;
-          
-        case NC_BYTE:
-          itk::EncapsulateMetaData<std::string>(thisDic,ITK_OnDiskStorageTypeName,_rdr->is_signed()?std::string(typeid(char).name()):std::string(typeid(unsigned char).name()));
-          break;
-          
-        case NC_FLOAT:
-          itk::EncapsulateMetaData<std::string>(thisDic,ITK_OnDiskStorageTypeName,std::string(typeid(float).name()));
-          break;
-      }*/
       
       if(_rdr->ndim(4)) //we have got time dimension
       {
@@ -297,21 +275,23 @@ namespace itk
         for(int j=0;j<_rdr->att_number(var_id);j++)
         {
           std::string att=_rdr->att_name(var_id,j);
-          std::string path=var+":"+att;
-          //std::cout<<path.c_str()<<" ";
+          std::string path;
+          
+          if(var=="itk") //special case of variable name, encapsulate it without colon
+            path=att;
+          else
+            path=var+":"+att;
+          
           switch(_rdr->att_type(var_id,att.c_str()))
           {
             case NC_CHAR:
               itk::EncapsulateMetaData<std::string>(thisDic,path, _rdr->att_value_string(var_id,att.c_str()));
-              //std::cout<<"string";
               break;
             case NC_INT:
               itk::EncapsulateMetaData<std::vector<int> >(thisDic,path, _rdr->att_value_int(var_id,att.c_str()));
-              //std::cout<<"int";
               break;
             case NC_DOUBLE:
               itk::EncapsulateMetaData<std::vector<double> >(thisDic,path, _rdr->att_value_double(var_id,att.c_str()));
-              //std::cout<<"double";
               break;
             case NC_SHORT:
               itk::EncapsulateMetaData<std::vector<short> >(thisDic,path, _rdr->att_value_short(var_id,att.c_str()));
@@ -320,7 +300,6 @@ namespace itk
               itk::EncapsulateMetaData<std::vector<unsigned char> >(thisDic,path, _rdr->att_value_byte(var_id,att.c_str()));
               break;
             default:
-              //std::cout<<"Unknown";
               break; //don't know what it is, skipping for now!  
           }
           //std::cout<<std::endl;
@@ -429,29 +408,29 @@ namespace itk
       
       switch(GetComponentType())
       {
-        case UCHAR:
-        case CHAR:
+        case ImageIOBase::UCHAR:
+        case ImageIOBase::CHAR:
           datatype=NC_BYTE;
           is_signed=false;
           break;
-        case SHORT:
+        case ImageIOBase::SHORT:
           datatype=NC_SHORT;
           is_signed=true;
           break;
-        case USHORT:
+        case ImageIOBase::USHORT:
           datatype=NC_SHORT;
           is_signed=false;
           break;
-        case INT:
+        case ImageIOBase::INT:
           datatype=NC_INT;
           is_signed=true;
           break;
-        case UINT:
+        case ImageIOBase::UINT:
           datatype=NC_INT;
           is_signed=false;
        
           break;
-        case FLOAT:
+        case ImageIOBase::FLOAT:
           //let's see if there is metadata available
           {
             nc_type _datatype=NC_FLOAT;
@@ -468,7 +447,7 @@ namespace itk
             }
           }
           break;
-        case DOUBLE:
+        case ImageIOBase::DOUBLE:
           datatype=NC_DOUBLE;
           is_signed=true;
           break;
@@ -653,10 +632,10 @@ namespace itk
             std::cout<<"yspace";break;
           case dim_info::DIM_X:
             std::cout<<"xspace";break;
-	  case dim_info::DIM_TIME:
-	    std::cout<<"time";break;
-          default: 
-	    std::cout<<"unknown";break;
+          case dim_info::DIM_TIME:
+            std::cout<<"time";break;
+                default: 
+            std::cout<<"unknown";break;
         }
         std::cout<<"("<<info[i].length<<"),";
       }
@@ -674,16 +653,29 @@ namespace itk
       //let's write some meta information if there is any 
       for(MetaDataDictionary::ConstIterator it=thisDic.Begin();it!=thisDic.End();++it)
       {
+        //don't store some internal ITK junk
+        if(
+           (*it).first=="ITK_InputFilterName" || 
+           (*it).first=="NRRD_content"  ||
+           (*it).first=="NRRD_centerings[0]" ||
+           (*it).first=="NRRD_centerings[1]" ||
+           (*it).first=="NRRD_centerings[2]" ||
+           (*it).first=="NRRD_centerings[3]" ||
+           (*it).first=="NRRD_kinds[0]" ||
+           (*it).first=="NRRD_kinds[1]" ||
+           (*it).first=="NRRD_kinds[2]" ||
+           (*it).first=="NRRD_kinds[3]" ||
+           (*it).first=="NRRD_space" 
+        )  continue; 
         const char *d=strchr((*it).first.c_str(),':');
+        itk::MetaDataObjectBase *bs=(*it).second;
+        const char *tname=bs->GetMetaDataObjectTypeName();
         if(d)
         {
           std::string var((*it).first.c_str(),d-(*it).first.c_str());
           std::string att(d+1);
-          itk::MetaDataObjectBase *bs=(*it).second;
-          const char *tname=bs->GetMetaDataObjectTypeName();
-          //std::cout<<var.c_str()<<"\t"<<att.c_str()<<"\t"<<tname<<std::endl;
           
-          //THIS is not good OO style at all :(
+          //VF:THIS is not good OO style at all :(
           if(!strcmp(tname,typeid(std::string).name()))
           {
             _wrt->insert(var.c_str(),att.c_str(),
@@ -696,16 +688,34 @@ namespace itk
               dynamic_cast<MetaDataObject<std::vector<int> > * >(bs)->GetMetaDataObjectValue());
           } else if(!strcmp(tname,typeid(std::vector<short>).name())) {
             _wrt->insert(var.c_str(),att.c_str(),
-                         dynamic_cast<MetaDataObject<std::vector<short> > * >(bs)->GetMetaDataObjectValue());
+              dynamic_cast<MetaDataObject<std::vector<short> > * >(bs)->GetMetaDataObjectValue());
           } else if(!strcmp(tname,typeid(std::vector<unsigned char>).name())) {
             _wrt->insert(var.c_str(),att.c_str(),
-                         dynamic_cast<MetaDataObject<std::vector<unsigned char> > * >(bs)->GetMetaDataObjectValue());
+              dynamic_cast<MetaDataObject<std::vector<unsigned char> > * >(bs)->GetMetaDataObjectValue());
           }
         } else if((*it).first=="history") {
           itk::MetaDataObjectBase *bs=(*it).second;
           _wrt->append_history(dynamic_cast<MetaDataObject<std::string> *>(bs)->GetMetaDataObjectValue().c_str());
+        }  else  { // else we have an attribute without variable name, most likely it comes from another file type
+          if(!strcmp(tname,typeid(std::string).name()))
+          {
+            if(! dynamic_cast<MetaDataObject<std::string> *>(bs )->GetMetaDataObjectValue().empty()) //don't insert empty strings
+              _wrt->insert("itk",(*it).first.c_str(),
+                dynamic_cast<MetaDataObject<std::string> *>(bs )->GetMetaDataObjectValue().c_str());
+          } else if(!strcmp(tname,typeid(std::vector<double>).name())) {
+            _wrt->insert("itk",(*it).first.c_str(),
+              dynamic_cast<MetaDataObject<std::vector<double> > * >(bs)->GetMetaDataObjectValue());
+          } else if(!strcmp(tname,typeid(std::vector<int>).name())) {
+            _wrt->insert("itk",(*it).first.c_str(),
+              dynamic_cast<MetaDataObject<std::vector<int> > * >(bs)->GetMetaDataObjectValue());
+          } else if(!strcmp(tname,typeid(std::vector<short>).name())) {
+            _wrt->insert("itk",(*it).first.c_str(),
+              dynamic_cast<MetaDataObject<std::vector<short> > * >(bs)->GetMetaDataObjectValue());
+          } else if(!strcmp(tname,typeid(std::vector<unsigned char>).name())) {
+            _wrt->insert("itk",(*it).first.c_str(),
+              dynamic_cast<MetaDataObject<std::vector<unsigned char> > * >(bs)->GetMetaDataObjectValue());
+          }
         }
-        
       }
     } catch(const minc::generic_error & err) {
       ExceptionObject exception(err.file(), err.line());
@@ -725,32 +735,32 @@ namespace itk
       
       switch(this->GetComponentType())
       {
-        case UCHAR:
-        case CHAR:
+        case ImageIOBase::UCHAR:
+        case ImageIOBase::CHAR:
           _wrt->setup_write_byte(false);
           save_non_standard_volume<unsigned char>(*_wrt,(const unsigned char*)buffer);
           break;
-        case SHORT:
+        case ImageIOBase::SHORT:
           _wrt->setup_write_short();
           save_non_standard_volume<short>(*_wrt,(const short*)buffer);
           break;
-        case USHORT:
+        case ImageIOBase::USHORT:
           _wrt->setup_write_ushort();
           save_non_standard_volume<unsigned short>(*_wrt,(const unsigned short*)buffer);
           break;
-        case INT:
+        case ImageIOBase::INT:
           _wrt->setup_write_int();
           save_non_standard_volume<int>(*_wrt,(const int*)buffer);
           break;
-        case UINT:
+        case ImageIOBase::UINT:
           _wrt->setup_write_uint();
           save_non_standard_volume<unsigned int>(*_wrt,(const unsigned int*)buffer);
           break;
-        case FLOAT:
+        case ImageIOBase::FLOAT:
           _wrt->setup_write_float();
           save_non_standard_volume<float>(*_wrt,(const float*)buffer);
           break;
-        case DOUBLE:
+        case ImageIOBase::DOUBLE:
           _wrt->setup_write_double();
           save_non_standard_volume<double>(*_wrt,(const double*)buffer);
           break;
@@ -763,6 +773,5 @@ namespace itk
     } catch(const minc::generic_error & err) {
       throw ExceptionObject(__FILE__, __LINE__,"Error reading minc file");
     }
-    
   }
 } // end namespace itk
