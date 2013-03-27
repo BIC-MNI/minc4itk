@@ -217,7 +217,7 @@ namespace minc
     void OpenXfm(const char *xfm)
     {
       _cleanup();
-      if(input_transform_file((char*)xfm, &_xfm)!=OK)
+      if(input_transform_file((char*)xfm, &_xfm) != VIO_OK)
         itkExceptionMacro( << "Error reading XFM:" << xfm );
       _initialized=true;
     }
@@ -266,7 +266,7 @@ namespace minc
     }
     
     ParametersType _parameters;
-    mutable General_transform _xfm,_xfm_inv;//quick fix for general_transform
+    mutable VIO_General_transform _xfm,_xfm_inv;//quick fix for general_transform
     bool _invert;
     bool _initialized,_initialized_invert;
     
