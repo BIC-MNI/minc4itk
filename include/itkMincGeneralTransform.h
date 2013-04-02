@@ -217,7 +217,7 @@ namespace minc
     void OpenXfm(const char *xfm)
     {
       _cleanup();
-      if(input_transform_file((char*)xfm, &_xfm)!=OK)
+      if(input_transform_file((char*)xfm, &_xfm) != VIO_OK)
         itkExceptionMacro( << "Error reading XFM:" << xfm );
       _initialized=true;
     }
