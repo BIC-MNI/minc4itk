@@ -266,7 +266,7 @@ namespace minc
     }
     
     ParametersType _parameters;
-    mutable General_transform _xfm,_xfm_inv;//quick fix for general_transform
+    mutable VIO_General_transform _xfm,_xfm_inv;//quick fix for general_transform
     bool _invert;
     bool _initialized,_initialized_invert;
     

@@ -126,7 +126,19 @@ namespace itk
       // set number of dimensions for ITK
       int image_max_length=_rdr->var_length(MIimagemax);
       int image_min_length=_rdr->var_length(MIimagemin);
-      bool slice_normalized=image_max_length>1;
+      bool slice_normalized=false;
+
+      if( image_max_length > 1 )
+          slice_normalized = true;
+      else
+      {
+          double validMin = _rdr->att_value_double( MIimage, MIvalid_min )[0];
+          double validMax = _rdr->att_value_double( MIimage, MIvalid_max )[0];
+          double imageMin = _rdr->var_value_double( MIimagemin )[0];
+          double imageMax = _rdr->var_value_double( MIimagemax )[0];
+          if( imageMin != validMin || imageMax != validMax )
+              slice_normalized = true;
+      }
 
       switch(_rdr->datatype())
       {
