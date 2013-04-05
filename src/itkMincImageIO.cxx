@@ -130,14 +130,18 @@ namespace itk
 
       if( image_max_length > 1 )
           slice_normalized = true;
-      else
+      else if( image_max_length==1 && image_min_length==1 )
       {
-          double validMin = _rdr->att_value_double( MIimage, MIvalid_min )[0];
-          double validMax = _rdr->att_value_double( MIimage, MIvalid_max )[0];
-          double imageMin = _rdr->var_value_double( MIimagemin )[0];
-          double imageMax = _rdr->var_value_double( MIimagemax )[0];
-          if( imageMin != validMin || imageMax != validMax )
-              slice_normalized = true;
+          std::vector<double> validRange = _rdr->att_value_double( MIimage, MIvalid_range );
+          if( validRange.size() == 2)
+          {
+            double validMin = validRange[0];
+            double validMax = validRange[1];
+            double imageMin = _rdr->var_value_double( MIimagemin )[0];
+            double imageMax = _rdr->var_value_double( MIimagemax )[0];
+            if( imageMin != validMin || imageMax != validMax )
+                slice_normalized = true;
+          }
       }
 
       switch(_rdr->datatype())
